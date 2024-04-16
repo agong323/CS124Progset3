@@ -49,23 +49,56 @@ def KK(A):
     return residue
 
 def repeatedRand(A):
-    randSol = np.random.choice([-1, 1], size=len(A))
-    min_residue = abs(np.dot(randSol,A))
+    S = np.random.choice([-1, 1], size=len(A))
     for x in range(max_iter):
-        r = np.random.choice([-1, 1], size=len(A))
-        r_res = abs(np.dot(r,A))
-        if  r_res < min_residue:
-            min_residue = r_res
-            randSol = r
-    return randSol
+        S1 = np.random.choice([-1, 1], size=len(A))
+        if  residue(S1,A) < residue(S,A):
+            S = S1
+    return S
 
         
 def hillClimb(A):
-    randSol = np.random.choice([-1, 1], size=len(A))
+    S = np.random.choice([-1, 1], size=len(A))
+    for x in range(max_iter):
+        # Choose two distinct indices
+        S1 = S.copy()
+        indices_to_flip = np.random.choice(len(A), size=2, replace=False)
+        # For each index, decide whether to flip the sign with a probability of 1/2
+        for index in indices_to_flip:
+            if np.random.rand() < 0.5:
+                S1[index] *= -1
+        if  residue(S1,A) < residue(S,A):
+            S = S1
+    return S
 
-    return A
+
 def simulatedAnnealing(A):
-    return A
+    S = np.random.choice([-1, 1], size=len(A))
+    S2 = S.copy()
+    for i in range(1,max_iter+1):
+        # Choose two distinct indices
+        S1 = S.copy()
+        indices_to_flip = np.random.choice(len(A), size=2, replace=False)
+        # For each index, decide whether to flip the sign with a probability of 1/2
+        for index in indices_to_flip:
+            if np.random.rand() < 0.5:
+                S1[index] *= -1
+        if  residue(S1,A) < residue(S,A):
+            S = S1
+        else:
+            probability = np.exp((-residue(S1,A) - residue(S,A)) / T(i))
+            if np.random.rand() < probability:
+                S = S1
+        if residue(S,A) < residue(S2,A):
+            S2 = S
+    return S2
+
+def T(i):
+    return (10**10) * (0.8)**(np.floor(i/300))
+
+def residue(S, A):
+    return abs(np.dot(S,A))
+
 def PPrepeatedRand(A):
     return A
 def PPhillClimb(A):
