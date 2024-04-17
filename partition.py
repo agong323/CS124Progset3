@@ -96,15 +96,33 @@ def simulatedAnnealing(A):
 def T(i):
     return (10**10) * (0.8)**(np.floor(i/300))
 
+def PPrepeatedRand(A):
+    n = len(A)
+    P = np.array([np.random.randint(1, n+1) for _ in range(n)])
+    Aprime = PPtransform(P,A)
+    for _ in range(max_iter):
+        P1 = np.array([np.random.randint(1, n+1) for _ in range(n)])
+        A1prime = PPtransform(P1,A)
+        if  KK(A1prime) < KK(Aprime):
+            Aprime = A1prime
+    return KK(Aprime)
+
+
+def PPhillClimb(A):
+    return A
+
+def PPsimulatedAnnealing(A):
+    return A
+
 def residue(S, A):
     return abs(np.dot(S,A))
 
-def PPrepeatedRand(A):
-    return A
-def PPhillClimb(A):
-    return A
-def PPsimulatedAnnealing(A):
-    return A
+def PPtransform(P, A):
+    n = len(A)
+    A1 = np.zeros(n,dtype=int)
+    for j in range(n):
+        A1[P[j] - 1] += A[j]
+    return A1
 
 if __name__ == "__main__":
     main()
