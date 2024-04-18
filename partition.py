@@ -1,8 +1,9 @@
 import sys
 import heapq
 import numpy as np
+import matplotlib.pyplot as plt
 
-max_iter = 100000
+max_iter = 25000
 
 def main():
     cli = sys.argv
@@ -17,23 +18,65 @@ def main():
             A = [int(line.strip()) for line in input]
     if flag == 1: #testing
         A = [10, 8, 7, 6, 5]
-    match alg: 
-        case 0:
-            print(KK(A))
-        case 1:
-            print(repeatedRand(A))
-        case 2:
-            print(hillClimb(A))
-        case 3:
-            print(simulatedAnnealing(A))
-        case 11:
-            print(PPrepeatedRand(A))
-        case 12:
-            print(PPhillClimb(A))
-        case 13:
-            print(PPsimulatedAnnealing(A))
+    if flag == 2:
+        KarmKarp = []
+        RepRand = []
+        HC = []
+        SA = []
+        PPRR = []
+        PPHC = []
+        PPSA = []
+        for instance in range(50):
+            A = np.array([np.random.randint(1, (10**12)+1) for _ in range(100)])
+            KarmKarp.append(KK(A))
+            RepRand.append(repeatedRand(A))
+            HC.append(hillClimb(A))
+            SA.append(simulatedAnnealing(A))
+            PPRR.append(PPrepeatedRand(A))
+            PPHC.append(PPhillClimb(A))
+            PPSA.append(PPsimulatedAnnealing(A))
+        plot_results(KarmKarp, "Karmarkar-Karp")
+        plot_results(RepRand, "Repeated Random")
+        plot_results(HC, "Hill Climb")
+        plot_results(SA, "Simulated Annealing")
+        plot_results(PPRR, "Prepartitioned Repeated Random")
+        plot_results(PPHC, "Prepartitioned Hill Climb")
+        plot_results(PPSA, "Prepartitioned Simulated Annealing")
+
+    else: 
+        match alg: 
+            case 0:
+                print(KK(A))
+            case 1:
+                print(repeatedRand(A))
+            case 2:
+                print(hillClimb(A))
+            case 3:
+                print(simulatedAnnealing(A))
+            case 11:
+                print(PPrepeatedRand(A))
+            case 12:
+                print(PPhillClimb(A))
+            case 13:
+                print(PPsimulatedAnnealing(A))
 
 
+def plot_results(data, title):
+    fig, ax = plt.subplots(1, 2, figsize=(14, 5))
+    
+    # Bar chart
+    ax[0].bar(range(len(data)), data, color='skyblue')
+    ax[0].set_title(f'Bar Chart of {title}')
+    ax[0].set_xlabel('Iteration')
+    ax[0].set_ylabel('Value')
+    
+    # Box plot
+    ax[1].boxplot(data)
+    ax[1].set_title(f'Box Plot of {title}')
+    ax[1].set_xlabel('Data')
+    ax[1].set_ylabel('Value')
+    
+    plt.show()
 
 def KK(A):
     maxheap = [-a for a in A]
