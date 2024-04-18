@@ -2,6 +2,8 @@ import sys
 import heapq
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import display
 
 max_iter = 25000
 
@@ -42,7 +44,17 @@ def main():
         plot_results(PPRR, "Prepartitioned Repeated Random")
         plot_results(PPHC, "Prepartitioned Hill Climb")
         plot_results(PPSA, "Prepartitioned Simulated Annealing")
-
+        data = {
+            "Karmarkar-Karp": KarmKarp,
+            "Repeated Random": RepRand,
+            "Hill Climb": HC,
+            "Simulated Annealing": SA,
+            "Preprocessing Repeated Random": PPRR,
+            "Preprocessing Hill Climb": PPHC,
+            "Preprocessing Simulated Annealing": PPSA
+        }
+        df = pd.DataFrame(data)
+        df.to_csv('experiment_results.csv', index=False)
     else: 
         match alg: 
             case 0:
@@ -62,19 +74,12 @@ def main():
 
 
 def plot_results(data, title):
-    fig, ax = plt.subplots(1, 2, figsize=(14, 5))
-    
-    # Bar chart
-    ax[0].bar(range(len(data)), data, color='skyblue')
-    ax[0].set_title(f'Bar Chart of {title}')
-    ax[0].set_xlabel('Iteration')
-    ax[0].set_ylabel('Value')
-    
+    fig, ax = plt.subplots(figsize=(7, 5))
     # Box plot
-    ax[1].boxplot(data)
-    ax[1].set_title(f'Box Plot of {title}')
-    ax[1].set_xlabel('Data')
-    ax[1].set_ylabel('Value')
+    ax.boxplot(data)
+    ax.set_title(f'Box Plot of {title}')
+    ax.set_xlabel('Data')
+    ax.set_ylabel('Value')
     
     plt.show()
 
