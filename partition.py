@@ -2,7 +2,7 @@ import sys
 import heapq
 import numpy as np
 
-max_iter = 1000
+max_iter = 100000
 
 def main():
     cli = sys.argv
@@ -54,7 +54,7 @@ def repeatedRand(A):
         S1 = np.random.choice([-1, 1], size=len(A))
         if  residue(S1,A) < residue(S,A):
             S = S1
-    return S
+    return residue(S, A)
 
         
 def hillClimb(A):
@@ -69,7 +69,7 @@ def hillClimb(A):
                 S1[index] *= -1
         if  residue(S1,A) < residue(S,A):
             S = S1
-    return S
+    return residue(S, A)
 
 
 def simulatedAnnealing(A):
@@ -91,7 +91,7 @@ def simulatedAnnealing(A):
                 S = S1
         if residue(S,A) < residue(S2,A):
             S2 = S
-    return S2
+    return residue(S2, A)
 
 def T(i):
     return (10**10) * (0.8)**(np.floor(i/300))
@@ -109,10 +109,41 @@ def PPrepeatedRand(A):
 
 
 def PPhillClimb(A):
-    return A
+    n = len(A)
+    P = np.array([np.random.randint(1, n+1) for _ in range(n)])
+    Aprime = PPtransform(P,A)
+    for _ in range(max_iter):
+        P1 = P.copy()
+        index_to_change = np.random.randint(n)
+        rand_num = np.random.randint(1, n+1)
+        while rand_num == P[index_to_change]:
+            rand_num = np.random.randint(1, n+1)
+        P1[index_to_change] = rand_num
+        A1prime = PPtransform(P1,A)
+        if  KK(A1prime) < KK(Aprime):
+            Aprime = A1prime
+    return KK(Aprime)
 
 def PPsimulatedAnnealing(A):
-    return A
+    n = len(A)
+    P = np.array([np.random.randint(1, n+1) for _ in range(n)])
+    Aprime = PPtransform(P,A)
+    A2prime = Aprime.copy()
+    for i in range(1, max_iter + 1):
+        P1 = P.copy()
+        index_to_change = np.random.randint(n)
+        rand_num = np.random.randint(1, n+1)
+        while rand_num == P[index_to_change]:
+            rand_num = np.random.randint(1, n+1)
+        P1[index_to_change] = rand_num
+        A1prime = PPtransform(P1,A)
+        if  KK(A1prime) < KK(Aprime):
+            Aprime = A1prime
+        elif np.random.rand() < np.exp((-KK(A1prime) - KK(Aprime)) / T(i)):
+            Aprime = A1prime
+        if KK(Aprime) < KK(A2prime):
+            A2prime = Aprime
+    return KK(A2prime)
 
 def residue(S, A):
     return abs(np.dot(S,A))
