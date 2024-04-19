@@ -2,7 +2,7 @@ import sys
 import heapq
 import numpy as np
 
-max_iter = 100000
+max_iter = 25000
 
 def main():
     cli = sys.argv
@@ -53,22 +53,20 @@ def repeatedRand(A):
     for x in range(max_iter):
         S1 = np.random.choice([-1, 1], size=len(A))
         if  residue(S1,A) < residue(S,A):
-            S = S1
+            S = S1.copy()
     return residue(S, A)
 
         
 def hillClimb(A):
     S = np.random.choice([-1, 1], size=len(A))
     for x in range(max_iter):
-        # Choose two distinct indices
         S1 = S.copy()
-        indices_to_flip = np.random.choice(len(A), size=2, replace=False)
-        # For each index, decide whether to flip the sign with a probability of 1/2
-        for index in indices_to_flip:
-            if np.random.rand() < 0.5:
-                S1[index] *= -1
+        indices_to_flip = np.random.choice(len(S1), size=2, replace=False)
+        S1[indices_to_flip[0]] *= -1
+        if np.random.rand() < 0.5:
+            S1[indices_to_flip[1]] *= -1
         if  residue(S1,A) < residue(S,A):
-            S = S1
+            S = S1.copy()
     return residue(S, A)
 
 
@@ -76,21 +74,19 @@ def simulatedAnnealing(A):
     S = np.random.choice([-1, 1], size=len(A))
     S2 = S.copy()
     for i in range(1,max_iter+1):
-        # Choose two distinct indices
         S1 = S.copy()
-        indices_to_flip = np.random.choice(len(A), size=2, replace=False)
-        # For each index, decide whether to flip the sign with a probability of 1/2
-        for index in indices_to_flip:
-            if np.random.rand() < 0.5:
-                S1[index] *= -1
+        indices_to_flip = np.random.choice(len(S1), size=2, replace=False)
+        S1[indices_to_flip[0]] *= -1
+        if np.random.rand() < 0.5:
+            S1[indices_to_flip[1]] *= -1
         if  residue(S1,A) < residue(S,A):
-            S = S1
+            S = S1.copy()
         else:
-            probability = np.exp((-residue(S1,A) - residue(S,A)) / T(i))
+            probability = np.exp(-(residue(S1,A) - residue(S,A)) / T(i))
             if np.random.rand() < probability:
-                S = S1
+                S = S1.copy()
         if residue(S,A) < residue(S2,A):
-            S2 = S
+            S2 = S.copy()
     return residue(S2, A)
 
 def T(i):
@@ -99,19 +95,16 @@ def T(i):
 def PPrepeatedRand(A):
     n = len(A)
     P = np.array([np.random.randint(1, n+1) for _ in range(n)])
-    Aprime = PPtransform(P,A)
     for _ in range(max_iter):
         P1 = np.array([np.random.randint(1, n+1) for _ in range(n)])
-        A1prime = PPtransform(P1,A)
-        if  KK(A1prime) < KK(Aprime):
-            Aprime = A1prime
-    return KK(Aprime)
+        if  PPtransform(P1,A) < PPtransform(P,A):
+            P = P1.copy()
+    return PPtransform(P,A)
 
 
 def PPhillClimb(A):
     n = len(A)
     P = np.array([np.random.randint(1, n+1) for _ in range(n)])
-    Aprime = PPtransform(P,A)
     for _ in range(max_iter):
         P1 = P.copy()
         index_to_change = np.random.randint(n)
@@ -119,16 +112,14 @@ def PPhillClimb(A):
         while rand_num == P[index_to_change]:
             rand_num = np.random.randint(1, n+1)
         P1[index_to_change] = rand_num
-        A1prime = PPtransform(P1,A)
-        if  KK(A1prime) < KK(Aprime):
-            Aprime = A1prime
-    return KK(Aprime)
+        if  PPtransform(P1,A) < PPtransform(P,A):
+            P = P1.copy()
+    return PPtransform(P,A)
 
 def PPsimulatedAnnealing(A):
     n = len(A)
     P = np.array([np.random.randint(1, n+1) for _ in range(n)])
-    Aprime = PPtransform(P,A)
-    A2prime = Aprime.copy()
+    P2 = P.copy()
     for i in range(1, max_iter + 1):
         P1 = P.copy()
         index_to_change = np.random.randint(n)
@@ -136,14 +127,15 @@ def PPsimulatedAnnealing(A):
         while rand_num == P[index_to_change]:
             rand_num = np.random.randint(1, n+1)
         P1[index_to_change] = rand_num
-        A1prime = PPtransform(P1,A)
-        if  KK(A1prime) < KK(Aprime):
-            Aprime = A1prime
-        elif np.random.rand() < np.exp((-KK(A1prime) - KK(Aprime)) / T(i)):
-            Aprime = A1prime
-        if KK(Aprime) < KK(A2prime):
-            A2prime = Aprime
-    return KK(A2prime)
+        if PPtransform(P1,A) < PPtransform(P,A):
+            P = P1.copy()
+        else:
+            probability = np.exp(-(PPtransform(P1,A) - PPtransform(P,A)) / T(i))
+            if np.random.rand() < probability:
+                P = P1.copy()
+        if PPtransform(P,A) < PPtransform(P2,A):
+            P2 = P.copy()
+    return PPtransform(P2,A)
 
 def residue(S, A):
     return abs(np.dot(S,A))
@@ -153,8 +145,10 @@ def PPtransform(P, A):
     A1 = np.zeros(n,dtype=int)
     for j in range(n):
         A1[P[j] - 1] += A[j]
-    return A1
+    return KK(A1)
 
 if __name__ == "__main__":
     main()
+
+
 
