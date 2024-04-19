@@ -3,7 +3,7 @@ import heapq
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from IPython.display import display
+import time
 
 max_iter = 25000
 
@@ -19,24 +19,40 @@ def main():
         with open(sys.argv[3], "r") as input:
             A = [int(line.strip()) for line in input]
     if flag == 1: #testing
-        A = [10, 8, 7, 6, 5]
+        A = np.array([np.random.randint(1, (10**12)+1) for _ in range(100)])
     if flag == 2:
-        KarmKarp = []
-        RepRand = []
-        HC = []
-        SA = []
-        PPRR = []
-        PPHC = []
-        PPSA = []
+        KarmKarp, RepRand, HC, SA, PPRR, PPHC, PPSA = [], [], [], [], [], [], []
+        times_KK, times_RR, times_HC, times_SA, times_PPRR, times_PPHC, times_PPSA = [], [], [], [], [], [], []
         for instance in range(50):
             A = np.array([np.random.randint(1, (10**12)+1) for _ in range(100)])
+
+            start = time.time()
             KarmKarp.append(KK(A))
+            times_KK.append(time.time() - start)
+            
+            start = time.time()
             RepRand.append(repeatedRand(A))
+            times_RR.append(time.time() - start)
+            
+            start = time.time()
             HC.append(hillClimb(A))
+            times_HC.append(time.time() - start)
+            
+            start = time.time()
             SA.append(simulatedAnnealing(A))
+            times_SA.append(time.time() - start)
+            
+            start = time.time()
             PPRR.append(PPrepeatedRand(A))
+            times_PPRR.append(time.time() - start)
+            
+            start = time.time()
             PPHC.append(PPhillClimb(A))
+            times_PPHC.append(time.time() - start)
+            
+            start = time.time()
             PPSA.append(PPsimulatedAnnealing(A))
+            times_PPSA.append(time.time() - start)
         plot_results(KarmKarp, "Karmarkar-Karp")
         plot_results(RepRand, "Repeated Random")
         plot_results(HC, "Hill Climb")
@@ -54,7 +70,22 @@ def main():
             "Preprocessing Simulated Annealing": PPSA
         }
         df = pd.DataFrame(data)
-        df.to_csv('experiment_results.csv', index=False)
+        df.to_csv('experiment_results1.csv', index=False)
+        # Plotting all runtimes on the same graph
+        plt.figure(figsize=(12, 8))
+        plt.plot(times_KK, label="Karmarkar-Karp")
+        plt.plot(times_RR, label="Repeated Random")
+        plt.plot(times_HC, label="Hill Climb")
+        plt.plot(times_SA, label="Simulated Annealing")
+        plt.plot(times_PPRR, label="Prepartitioned Repeated Random")
+        plt.plot(times_PPHC, label="Prepartitioned Hill Climb")
+        plt.plot(times_PPSA, label="Prepartitioned Simulated Annealing")
+
+        plt.xlabel("Trial Number")
+        plt.ylabel("Runtime (seconds)")
+        plt.title("Algorithm Runtimes over Trials")
+        plt.legend()
+        plt.show()
     else: 
         match alg: 
             case 0:
@@ -134,7 +165,7 @@ def simulatedAnnealing(A):
         if  residue(S1,A) < residue(S,A):
             S = S1
         else:
-            probability = np.exp((-residue(S1,A) - residue(S,A)) / T(i))
+            probability = np.exp(-(residue(S1,A) - residue(S,A)) / T(i))
             if np.random.rand() < probability:
                 S = S1
         if residue(S,A) < residue(S2,A):
@@ -185,10 +216,12 @@ def PPsimulatedAnnealing(A):
             rand_num = np.random.randint(1, n+1)
         P1[index_to_change] = rand_num
         A1prime = PPtransform(P1,A)
-        if  KK(A1prime) < KK(Aprime):
+        if KK(A1prime) < KK(Aprime):
             Aprime = A1prime
-        elif np.random.rand() < np.exp((-KK(A1prime) - KK(Aprime)) / T(i)):
-            Aprime = A1prime
+        else:
+            probability = np.exp(-(KK(A1prime) - KK(Aprime)) / T(i))
+            if np.random.rand() < probability:
+                Aprime = A1prime
         if KK(Aprime) < KK(A2prime):
             A2prime = Aprime
     return KK(A2prime)
